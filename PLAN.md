@@ -109,26 +109,31 @@ Code can't do this; it must be done on elevenlabs.io. Steps:
       Widget settings — though we will also build our own in-app
       transcript (M3).
 
-### M3 — Feature: on-screen conversation transcript
+### M3 — Feature: on-screen conversation transcript  ✅ (done)
 
 **Goal:** show, on the page, both what the user said and what GAEY said —
-a running, scrollable transcript. Today the code only shows the agent's
-*current* line and clears it when the agent stops speaking; user lines are
-discarded.
+a running, scrollable transcript. (Before: the code only showed the
+agent's *current* line and cleared it when the agent stopped speaking;
+user lines were discarded.)
 
-- [ ] In `ConvAI.tsx`, accumulate messages into a state array
-      `{ role: "user" | "agent"; text: string; id }[]` from the
-      `onMessage` callback (it delivers **both** user transcriptions and
-      agent replies; verify the exact discriminator field — `source`
-      vs `role`, values `user`/`ai`/`agent` — against the installed
-      `@elevenlabs/react@0.13.1` types after `pnpm install`).
-- [ ] Render a chat-style transcript (user vs GAEY bubbles), auto-scroll
-      to the latest, with sensible empty/disconnected states.
-- [ ] Remove the leftover debug placeholder text in the initial
-      `agentMessage` state.
-- [ ] (Nice-to-have) "Clear" button; copy-to-clipboard; keep transcript
-      after the call ends so the learner can review.
+- [x] In `ConvAI.tsx`, accumulate messages into a `{ id; role; text }[]`
+      state array from the `onMessage` callback. **Verified** against the
+      installed types (`@elevenlabs/types@0.4.0`): the discriminator is
+      `role: "user" | "agent"` (`source: "user" | "ai"` is deprecated),
+      and `onMessage` fires once per finalized turn (no partial/tentative
+      duplicates), so each turn is appended directly.
+- [x] Render a chat-style transcript (user vs GAEY bubbles), auto-scroll
+      to the latest, with bilingual empty/disconnected states.
+- [x] Remove the leftover debug placeholder text (and dead `drift`
+      keyframes); add a header with brand + live status.
+- [x] Keep the transcript visible after the call ends (reset only when a
+      new session starts) so the learner can review.
+- [ ] (Nice-to-have) "Clear" / copy-to-clipboard buttons.
 - [ ] (Stretch) One-tap "explain this slang" / save-phrase for review.
+
+> Note: full end-to-end behavior (live bubbles appearing as both sides
+> speak) needs a real ElevenLabs agent + mic to verify; lint, type-check,
+> production build, and SSR render of the new UI all pass.
 
 ### M4 — Feature: speech-rate (语速) control
 
