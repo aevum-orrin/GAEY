@@ -1,0 +1,208 @@
+# GAEY — Project Plan & Roadmap
+
+> Living document. Updated as the project evolves.
+
+## 1. Vision
+
+**GAEY** is a friendly, voice-first AI conversation partner that helps
+Chinese international students (and anyone learning American English)
+understand and start using **authentic, everyday spoken American
+English** — current slang, idioms, and casual expressions — by simply
+chatting, the way you would with a friend.
+
+The problem it solves: many students have strong "textbook" English but
+struggle to follow how Americans actually talk casually (slang, idioms,
+filler, references). GAEY is a low-pressure way to hear and practice that.
+
+**Personality target:** a chill, warm, supportive American friend in their
+early 20s. Natural conversational accent. Uses real slang but **explains
+it** when useful. **PG / minimal profanity**, no caricature of any single
+accent or group, not aggressive or insulting — just normal friendly talk.
+
+## 2. Background — built on NEGA
+
+GAEY is **built on NEGA**, the upstream project this repository was forked
+from. NEGA is a clean, well-built ElevenLabs
+Conversational AI starter, but its agent persona was a heavy "African
+American urban street" character with a lot of profanity. GAEY reuses
+NEGA's solid technical foundation and rebuilds the persona around a
+friendly, modern, teach-me-real-English experience.
+
+(That's the only place we need to call this out — once is enough.)
+
+## 3. How it works (architecture in one paragraph)
+
+This app is a **thin client** for **ElevenLabs Conversational AI**. It
+contains no AI model. The browser asks our server route
+(`app/api/signed-url`) for a short-lived signed URL (built from
+`AGENT_ID` + `XI_API_KEY`), then opens a realtime mic+audio session via the
+`@elevenlabs/react` `useConversation()` hook. ElevenLabs runs the LLM
+(e.g. Gemini 2.5 Flash), speech-to-text, and the voice (text-to-speech).
+
+**Crucial:** the persona, voice, LLM choice, first message, and speech
+speed all live on the **ElevenLabs dashboard**, not in this code. See
+`CLAUDE.md` for the full code-vs-dashboard table. Code changes can add
+*features* (transcript, controls); they cannot change *who the AI is*.
+
+## 4. Cost, hardware & "do I need a GPU?"
+
+**Short answer: free to run, no GPU, runs on any laptop. The only cost is
+ElevenLabs usage.**
+
+### Money
+
+- **The app / code:** 100% free and open source. No payment in the code.
+- **ElevenLabs (the real dependency):**
+  - Has a **free tier** with a monthly credit allowance (the setup
+    screenshots show a free workspace with 10,000 credits).
+  - **Conversational AI consumes credits per minute** of conversation
+    (LLM + TTS + STT are billed through these credits). So the free tier
+    is fine for testing but limited for daily use; heavy use needs a paid
+    plan (Starter / Creator / etc.).
+  - **Voice creation tiers:** *Voice Design* (text-prompt voice) works on
+    the free tier; *Instant Voice Cloning* needs Starter+; *Professional
+    Voice Cloning* needs Creator+.
+  - The LLM (Gemini 2.5 Flash and friends) is **included via ElevenLabs**
+    — you do **not** need a separate OpenAI/Google API key.
+
+### Hardware & software
+
+- **Any normal computer** (Windows / macOS / Linux). No special hardware.
+- **No GPU. Ever.** You never run a model on your machine.
+- Software: **Node.js 18+**, a package manager (pnpm recommended), a
+  **modern browser** (Chrome/Edge/Safari) with a **microphone**, speakers
+  or headphones, and an internet connection.
+
+### "If I change the model / persona, do I need a GPU?"
+
+No. "Changing the model" means **picking a different LLM from a dropdown**
+in the ElevenLabs agent settings (Gemini, GPT, Claude, …) — it runs on
+their servers. "Changing the persona" means **editing prompt text** on the
+dashboard. "Changing the voice / speed" means **dashboard settings**. None
+of these touch your local compute.
+
+## 5. Workstreams & milestones
+
+### M1 — Rebrand NEGA → GAEY  ✅ (in progress)
+
+- [x] Add `CLAUDE.md` (assistant guidance) and `PLAN.md` (this file).
+- [x] Rebrand `README.md` / `README_EN.md` to GAEY; reframe around the
+      learning-American-slang goal; one "built on NEGA" mention; swap the
+      old street-persona prompt for the new GAEY prompt (§7).
+- [x] Update `package.json` name and `app/layout.tsx` `<title>`.
+- [ ] (later) Review/replace NEGA-era assets: `public/avatar.png` and the
+      `public/American.mp3` voice sample, to match GAEY's identity.
+
+### M2 — ElevenLabs agent re-config  (USER action on the dashboard)
+
+Code can't do this; it must be done on elevenlabs.io. Steps:
+
+- [ ] Create/clone an agent named **GAEY**.
+- [ ] Paste the new **system prompt** (see §7) and **first message**.
+- [ ] Pick a friendlier **voice** (Voice Design / Voice Library) — a
+      relatable young-American voice, not a heavy single-accent caricature.
+- [ ] Set a learner-friendly **speed** default (e.g. ~0.9–1.0) in the
+      Voice tab.
+- [ ] Keep / pick an **LLM** (Gemini 2.5 Flash is a fine default).
+- [ ] Copy the **Agent ID** and create an **API key**; put them in `.env`.
+- [ ] (Optional) Turn on the agent's built-in "Realtime transcript" in the
+      Widget settings — though we will also build our own in-app
+      transcript (M3).
+
+### M3 — Feature: on-screen conversation transcript
+
+**Goal:** show, on the page, both what the user said and what GAEY said —
+a running, scrollable transcript. Today the code only shows the agent's
+*current* line and clears it when the agent stops speaking; user lines are
+discarded.
+
+- [ ] In `ConvAI.tsx`, accumulate messages into a state array
+      `{ role: "user" | "agent"; text: string; id }[]` from the
+      `onMessage` callback (it delivers **both** user transcriptions and
+      agent replies; verify the exact discriminator field — `source`
+      vs `role`, values `user`/`ai`/`agent` — against the installed
+      `@elevenlabs/react@0.13.1` types after `pnpm install`).
+- [ ] Render a chat-style transcript (user vs GAEY bubbles), auto-scroll
+      to the latest, with sensible empty/disconnected states.
+- [ ] Remove the leftover debug placeholder text in the initial
+      `agentMessage` state.
+- [ ] (Nice-to-have) "Clear" button; copy-to-clipboard; keep transcript
+      after the call ends so the learner can review.
+- [ ] (Stretch) One-tap "explain this slang" / save-phrase for review.
+
+### M4 — Feature: speech-rate (语速) control
+
+**Goal:** let the learner slow GAEY down or speed it up.
+
+- [ ] **Reliable baseline:** set the speed on the ElevenLabs Voice tab
+      (range **0.7–1.2**, default 1.0) and document it. This is the
+      guaranteed-to-work path and is great for a default learner pace.
+- [ ] **In-app control (investigate):** the SDK `startSession` `overrides`
+      officially expose `agent` (prompt/firstMessage/language), `tts`
+      (`voiceId`), and `conversation` (`textOnly`) — **speed is not a
+      documented runtime override**. Options to evaluate during
+      implementation:
+  1. Check whether the installed SDK version accepts a `tts.speed` (or
+     similar) override; if so, expose a slider that applies on
+     (re)connect.
+  2. Client-side **playback-rate** approach on the SDK's audio output
+     element, if reachable, for live adjustment without reconnecting.
+  3. Fallback: a small set of preset paces (Slow / Normal) that map to
+     reconnecting the session with a different configured speed.
+- [ ] Whatever path works, surface a clean control near the call button.
+
+### M5 — UI/UX polish
+
+- [ ] Rename all user-visible "Agent"/NEGA strings to GAEY-appropriate
+      copy; bilingual (中文/English) labels where helpful for learners.
+- [ ] Consider a friendlier avatar + theme.
+- [ ] Mobile layout pass.
+
+### M6 — Docs & tutorial refresh
+
+- [ ] Update `doc/` tutorial (screenshots/steps) for the GAEY agent setup,
+      including where to set the system prompt, voice, and speed.
+
+### M7 — Test & ship
+
+- [ ] `pnpm lint` + `pnpm build` clean.
+- [ ] Manual test: mic permission, start/stop, transcript, speed control.
+- [ ] When ready, open a PR from the working branch into `main`.
+
+## 6. Open questions / decisions
+
+- **Voice choice:** which ElevenLabs voice best fits "relatable young
+  American friend" without leaning on one heavy accent? (User to pick on
+  the dashboard.)
+- **Speed control mechanism:** confirm what the installed SDK actually
+  supports for runtime speed (decides M4's exact approach).
+- **Transcript persistence:** in-memory only, or save locally
+  (localStorage) so learners can review past chats?
+- **Assets:** keep or replace `avatar.png` / `American.mp3`.
+
+## 7. Recommended GAEY agent configuration (paste into ElevenLabs)
+
+**System prompt (draft):**
+
+> You are GAEY, a friendly and upbeat American friend who helps Chinese
+> international students understand and use authentic, everyday American
+> English. Talk like a chill, supportive friend in your early twenties:
+> natural conversational American accent, warm and encouraging, with clear
+> enunciation. Use common, current American slang, idioms, and casual
+> expressions (for example: "what's up", "my bad", "no cap", "lowkey",
+> "it's giving…", "hang out", "that's fire", "for real"), and when it's
+> helpful, briefly explain what an expression means and when to use it.
+> Keep it PG: no profanity or slurs. Light, playful humor is welcome.
+> Don't overdo any single regional or ethnic accent or caricature — just
+> sound like a relatable, modern American friend. Gently correct mistakes,
+> encourage the learner, and keep replies short and conversational so it
+> feels like a real chat. Speak at a clear, easy-to-follow pace.
+
+**First message (draft):**
+
+> Yo, what's up! I'm GAEY — think of me as your American buddy. We can just
+> hang and chat, and I'll put you on to how people actually talk over here.
+> So… what's on your mind?
+
+**Other settings:** Language = English · LLM = Gemini 2.5 Flash (default) ·
+Voice = a friendly young-American voice · Speed ≈ 0.9–1.0 to start.

@@ -3,7 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "NEGA - Conversation AI",
+  title: "GAEY - Learn Authentic American English",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
