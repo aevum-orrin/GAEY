@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { LiveWaveform } from "@/components/ui/live-waveform";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import * as React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BackgroundAura } from "@/components/background-aura";
 import { cn } from "@/lib/utils";
 import { useConversation } from "@elevenlabs/react";
@@ -30,10 +29,43 @@ async function getSignedUrl(): Promise<string> {
   return data.signedUrl;
 }
 
-export function ConvAI() {
-  const [agentMessage, setAgentMessage] = useState(
-    "你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted 你好懂播撒u ousted ",
+// A single line in the conversation transcript. The ElevenLabs `onMessage`
+// callback reports a role of "user" (the learner's speech) or "agent" (GAEY).
+type TranscriptMessage = {
+  id: number;
+  role: "user" | "agent";
+  text: string;
+};
+
+// One chat bubble: the learner's lines are right-aligned, GAEY's are left.
+function TranscriptBubble({ message }: { message: TranscriptMessage }) {
+  const isUser = message.role === "user";
+  return (
+    <div className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}>
+      <div className={cn("flex max-w-[85%] flex-col gap-1", isUser ? "items-end" : "items-start")}>
+        <span className="px-1 text-[11px] font-medium text-muted-foreground">
+          {isUser ? "You · 你" : "GAEY"}
+        </span>
+        <div
+          className={cn(
+            "whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-sm leading-relaxed",
+            isUser
+              ? "rounded-br-sm bg-primary text-primary-foreground"
+              : "rounded-bl-sm border border-border/60 bg-background/80 text-foreground",
+          )}
+        >
+          {message.text}
+        </div>
+      </div>
+    </div>
   );
+}
+
+export function ConvAI() {
+  // Full conversation transcript: both what the learner said and what GAEY said.
+  const [messages, setMessages] = useState<TranscriptMessage[]>([]);
+  const messageIdRef = useRef(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { status, isSpeaking, startSession, endSession } = useConversation({
     onError: (error) => {
@@ -41,23 +73,23 @@ export function ConvAI() {
       toast.error("An error occurred during the conversation");
     },
     onMessage: ({ message, role }) => {
-      console.log(message);
-      if (role === "agent") {
-        setAgentMessage(message);
-      }
+      // Fires once per finalized turn for BOTH the user (speech-to-text) and
+      // the agent (its reply), so we append every message to the transcript.
+      if (!message) return;
+      setMessages((prev) => [...prev, { id: messageIdRef.current++, role, text: message }]);
     },
   });
-
-  useEffect(() => {
-    if (!isSpeaking) {
-      setAgentMessage("");
-    }
-  }, [isSpeaking]);
 
   const [isStarting, setIsStarting] = useState(false);
   const isConnected = status === "connected";
   const isConnecting = status === "connecting";
   const isLoading = isStarting || isConnecting;
+
+  // Keep the transcript scrolled to the latest message.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   async function startConversation() {
     setIsStarting(true);
@@ -68,11 +100,14 @@ export function ConvAI() {
         setIsStarting(false);
         return;
       }
+      // Start each session with a clean transcript.
+      setMessages([]);
       const signedUrl = await getSignedUrl();
       await startSession({
         signedUrl: signedUrl,
       });
     } catch (error) {
+      console.error(error);
       toast.error("Failed to start conversation");
     } finally {
       setIsStarting(false);
@@ -83,48 +118,81 @@ export function ConvAI() {
     await endSession();
   }
 
+  const statusLabel = !isConnected
+    ? isLoading
+      ? "Connecting…"
+      : "Disconnected"
+    : isSpeaking
+      ? "GAEY is speaking"
+      : "Listening…";
+
   return (
-    <div className={"fixed inset-0 overflow-hidden flex flex-col items-center justify-center"}>
+    <div className={"fixed inset-0 flex flex-col items-center overflow-hidden"}>
       <BackgroundAura />
 
-      <div className="z-10 flex flex-col items-center justify-center flex-1">
-        <div className={"text-center mb-8"}>
-          <h2 className="text-2xl font-semibold text-foreground/80 flex justify-center">
-            {isConnected ? (
-              isSpeaking ? (
-                <div className="max-w-[600px] whitespace-normal break-words text-center">
-                  {agentMessage || "Agent is speaking..."}
-                </div>
-              ) : (
-                "Agent is listening"
-              )
-            ) : (
-              "Disconnected"
+      {/* Header: brand + live connection status */}
+      <header className="z-10 flex shrink-0 flex-col items-center gap-2 pt-8 sm:pt-10">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">GAEY</h1>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span
+            className={cn(
+              "h-2 w-2 rounded-full transition-colors",
+              isConnected
+                ? isSpeaking
+                  ? "animate-pulse bg-cyan-400"
+                  : "bg-green-400"
+                : "bg-muted-foreground/40",
             )}
-          </h2>
+          />
+          {statusLabel}
         </div>
+      </header>
 
+      {/* Avatar + microphone waveform */}
+      <section className="z-10 mt-4 flex shrink-0 flex-col items-center">
         <div
           className={cn(
-            "relative w-48 h-48 my-8 rounded-full overflow-hidden transition-all duration-500 border-4",
+            "relative h-28 w-28 overflow-hidden rounded-full border-4 transition-all duration-500 sm:h-32 sm:w-32",
             isConnected
-              ? "border-green-400/50 shadow-[0_0_40px_rgba(74,222,128,0.4)] scale-105"
-              : "border-white/10 grayscale opacity-70 scale-100",
+              ? "scale-105 border-green-400/50 shadow-[0_0_40px_rgba(74,222,128,0.4)]"
+              : "scale-100 border-white/10 opacity-70 grayscale",
           )}
         >
-          <Image src="/avatar.png" alt="Agent Avatar" fill className="object-cover" priority />
+          <Image src="/avatar.png" alt="GAEY Avatar" fill className="object-cover" priority />
         </div>
-
-        <div className="h-24 w-full max-w-md flex items-center justify-center">
+        <div className="flex h-16 w-full max-w-md items-center justify-center">
           <LiveWaveform
             active={isConnected}
-            height={60}
-            className="animate-in fade-in zoom-in duration-500"
+            height={48}
+            className="duration-500 animate-in fade-in zoom-in"
           />
         </div>
-      </div>
+      </section>
 
-      <div className="z-10 mb-12 flex gap-4">
+      {/* Conversation transcript: shows both sides of the conversation */}
+      <section className="z-10 min-h-0 w-full max-w-2xl flex-1 px-4 pb-2">
+        <div
+          ref={scrollRef}
+          className="h-full overflow-y-auto rounded-2xl border border-border/60 bg-background/40 p-4 backdrop-blur-sm"
+        >
+          {messages.length === 0 ? (
+            <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+              {isConnected
+                ? "Say something — GAEY is listening 🎧  /  说点什么吧，GAEY 在听"
+                : "Start a conversation to see the transcript here.  /  开始对话后，这里会实时显示你和 GAEY 说的每句话。"}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {messages.map((m) => (
+                <TranscriptBubble key={m.id} message={m} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Call controls */}
+      <footer className="z-10 my-6 flex shrink-0 gap-4">
         {!isConnected ? (
           <Button
             variant={"outline"}
@@ -153,18 +221,7 @@ export function ConvAI() {
             End conversation
           </Button>
         )}
-      </div>
-
-      <style jsx>{`
-        @keyframes drift {
-          0% {
-            transform: translateX(-10%) scale(1);
-          }
-          100% {
-            transform: translateX(10%) scale(1.05);
-          }
-        }
-      `}</style>
+      </footer>
     </div>
   );
 }
