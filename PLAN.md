@@ -81,13 +81,17 @@ their servers. "Changing the persona" means **editing prompt text** on the
 dashboard. "Changing the voice / speed" means **dashboard settings**. None
 of these touch your local compute.
 
-### Deeper dive: free-tier budget & a fully self-hosted alternative
+### Deeper dive: free-tier budget & lower-cost alternatives
 
-See **`doc/cost-and-self-hosting.md`** for (1) a breakdown of how far the
-ElevenLabs free tier goes and what daily practice actually costs, and
-(2) a design + effort estimate for a 100% free, self-hosted pipeline
-(Whisper + Ollama + open-source TTS), including what would change in this
-codebase.
+- **`doc/cost-and-self-hosting.md`** — how far the ElevenLabs free tier
+  goes, what daily practice actually costs, and a design + effort estimate
+  for a fully self-hosted pipeline.
+- **`doc/plan-a-selfhosted.md`** — Plan A (保底 / fallback): self-hosted
+  Whisper + Ollama (Llama 3.1 8B or larger) + Kokoro TTS. Zero per-use
+  cost, but needs your own machine/GPU and **can't run on Vercel**.
+- **`doc/plan-b-gemini.md`** — Plan B: Gemini Live API (via Google AI
+  Studio). Small change to the current architecture, **Vercel-friendly**,
+  no GPU. Note: a Google AI **Pro** subscription ≠ Gemini **API** quota.
 
 ## 5. Workstreams & milestones
 
