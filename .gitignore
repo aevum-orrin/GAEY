@@ -41,3 +41,15 @@ next-env.d.ts
 
 # jetbrains
 .idea
+
+# local-backend (Plan A: Python voice service)
+local-backend/.venv/
+local-backend/.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# demo/test audio artifacts
+*.wav
+!local-backend/tests/fixtures/*.wav

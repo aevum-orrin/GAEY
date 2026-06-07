@@ -1,0 +1,8 @@
+# Dev/test dependencies. Install with: pip install -r requirements-dev.txt
+-r requirements.txt
+
+pytest
+pytest-asyncio
+respx              # mock httpx (Ollama) in tests
+ruff
+mypy

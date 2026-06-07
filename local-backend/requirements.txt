@@ -1,0 +1,19 @@
+# GAEY local voice backend — runtime dependencies.
+# Code/comments are English-only per project convention.
+
+# Web / runtime
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+httpx              # Ollama HTTP client (Phase 2)
+numpy              # audio buffers (Phase 3/4)
+
+# --- Heavy model dependencies: installed in their own phases to keep early
+# --- phases light. Uncomment as each phase lands (see doc/plan-a-selfhosted.md).
+# faster-whisper   # Phase 4 — STT
+# kokoro           # Phase 3 — TTS
+# soundfile        # Phase 3/4 — audio file IO
+# silero-vad       # Phase 5 — VAD
+# onnxruntime      # Phase 5 — VAD runtime (use onnxruntime-gpu on NVIDIA)
+# sounddevice      # Phase 4 — mic capture for demo scripts

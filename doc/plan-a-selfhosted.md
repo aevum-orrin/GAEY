@@ -52,7 +52,7 @@
 
 | Phase | 名称 | 状态 | Claude auto-test | 你已验收 |
 | --- | --- | --- | --- | --- |
-| 0 | Prerequisites & scaffold | 📝 Planned | ☐ | ☐ |
+| 0 | Prerequisites & scaffold | 🤖 Auto-tested | ☑ | ☐ |
 | 1 | Backend WebSocket skeleton | 📝 Planned | ☐ | ☐ |
 | 2 | LLM via Ollama (text, streaming) | 📝 Planned | ☐ | ☐ |
 | 3 | TTS via Kokoro (text → audio) | 📝 Planned | ☐ | ☐ |
