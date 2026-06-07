@@ -1,0 +1,22 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GAEY avatar">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="52%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- gradient background (fills the circular crop edge-to-edge) -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- friendly speech bubble = a buddy you talk to -->
+  <path
+    d="M156 138 H356 a44 44 0 0 1 44 44 V302 a44 44 0 0 1 -44 44 H252 l-58 52 v-52 H156 a44 44 0 0 1 -44 -44 V182 a44 44 0 0 1 44 -44 Z"
+    fill="#ffffff"/>
+
+  <!-- smiley face -->
+  <circle cx="214" cy="232" r="17" fill="#1f2937"/>
+  <circle cx="298" cy="232" r="17" fill="#1f2937"/>
+  <path d="M206 280 q50 48 100 0" fill="none" stroke="#1f2937" stroke-width="17" stroke-linecap="round"/>
+</svg>
