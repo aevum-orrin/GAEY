@@ -90,8 +90,10 @@ of these touch your local compute.
       learning-American-slang goal; one "built on NEGA" mention; swap the
       old street-persona prompt for the new GAEY prompt (§7).
 - [x] Update `package.json` name and `app/layout.tsx` `<title>`.
-- [ ] (later) Review/replace NEGA-era assets: `public/avatar.png` and the
-      `public/American.mp3` voice sample, to match GAEY's identity.
+- [x] Replace the NEGA-era `public/avatar.png` with a friendly GAEY avatar
+      (speech-bubble smiley; SVG source in `public/avatar.svg`).
+- [ ] (later) Review/replace the `public/American.mp3` voice sample and the
+      NEGA `favicon.ico` to match GAEY's identity.
 
 ### M2 — ElevenLabs agent re-config  (USER action on the dashboard)
 
@@ -160,12 +162,32 @@ playback-rate hack or preset-reconnect fallback was needed.
 > real agent with the override enabled to confirm; lint, type-check,
 > production build, and SSR render of the control all pass.
 
-### M5 — UI/UX polish
+### M5 — UI/UX polish  (planned — not started)
 
-- [ ] Rename all user-visible "Agent"/NEGA strings to GAEY-appropriate
-      copy; bilingual (中文/English) labels where helpful for learners.
-- [ ] Consider a friendlier avatar + theme.
-- [ ] Mobile layout pass.
+Thoughts on what's worth polishing, roughly highest-value first. (The
+avatar and English-only copy already landed.)
+
+- [x] Friendlier GAEY avatar (speech-bubble smiley on the brand gradient).
+- [x] English-only, GAEY-branded on-screen copy.
+- [ ] **Speed slider styling.** The native range input is plain — style the
+      track/thumb, show a filled portion, and add subtle "Slow / Normal /
+      Fast" hints (or snap presets) so the control feels intentional.
+- [ ] **Transcript feel.** Gentle fade/slide-in for new bubbles
+      (framer-motion is already a dep), smoother auto-scroll, a "jump to
+      latest" affordance when scrolled up, and a nicer empty state.
+- [ ] **Live-state cues.** Make connecting / listening / speaking visually
+      distinct — e.g. animate the avatar ring while GAEY speaks, tie the
+      waveform color to state.
+- [ ] **Mobile pass.** Verify the avatar + waveform + transcript + controls
+      stack well on small screens; give the transcript more room, compact
+      the footer.
+- [ ] **Onboarding nudge.** A one-line first-run hint ("Click start and
+      just talk — try 'what does _____ mean?'") and maybe a rotating
+      slang-of-the-day.
+- [ ] **Branding loose ends.** Replace the NEGA `favicon.ico`; review the
+      `public/American.mp3` voice sample; small footer/credits.
+- [ ] **Theme + a11y.** Check light/dark both look good (next-themes is
+      present); add focus states and `prefers-reduced-motion` handling.
 
 ### M6 — Docs & tutorial refresh
 
