@@ -123,7 +123,7 @@ user lines were discarded.)
       and `onMessage` fires once per finalized turn (no partial/tentative
       duplicates), so each turn is appended directly.
 - [x] Render a chat-style transcript (user vs GAEY bubbles), auto-scroll
-      to the latest, with bilingual empty/disconnected states.
+      to the latest, with clear empty/disconnected states.
 - [x] Remove the leftover debug placeholder text (and dead `drift`
       keyframes); add a header with brand + live status.
 - [x] Keep the transcript visible after the call ends (reset only when a
@@ -135,26 +135,30 @@ user lines were discarded.)
 > speak) needs a real ElevenLabs agent + mic to verify; lint, type-check,
 > production build, and SSR render of the new UI all pass.
 
-### M4 — Feature: speech-rate (语速) control
+### M4 — Feature: speech-rate control  ✅ (done)
 
 **Goal:** let the learner slow GAEY down or speed it up.
 
-- [ ] **Reliable baseline:** set the speed on the ElevenLabs Voice tab
-      (range **0.7–1.2**, default 1.0) and document it. This is the
-      guaranteed-to-work path and is great for a default learner pace.
-- [ ] **In-app control (investigate):** the SDK `startSession` `overrides`
-      officially expose `agent` (prompt/firstMessage/language), `tts`
-      (`voiceId`), and `conversation` (`textOnly`) — **speed is not a
-      documented runtime override**. Options to evaluate during
-      implementation:
-  1. Check whether the installed SDK version accepts a `tts.speed` (or
-     similar) override; if so, expose a slider that applies on
-     (re)connect.
-  2. Client-side **playback-rate** approach on the SDK's audio output
-     element, if reachable, for live adjustment without reconnecting.
-  3. Fallback: a small set of preset paces (Slow / Normal) that map to
-     reconnecting the session with a different configured speed.
-- [ ] Whatever path works, surface a clean control near the call button.
+Resolved during implementation: the installed SDK **does** support a
+runtime TTS speed override. Verified in the types
+(`@elevenlabs/client@0.13.1`, `BaseSessionConfig.overrides`):
+`tts?: { voiceId?; speed?; stability?; similarityBoost? }`. So no
+playback-rate hack or preset-reconnect fallback was needed.
+
+- [x] In-app **speech-speed slider** (`0.7×–1.2×`, default `1.0×`) in
+      `ConvAI.tsx`, with turtle/rabbit cues, a live readout, placed above
+      the call button.
+- [x] Applied per session by passing `overrides: { tts: { speed } }` to
+      `startSession`; takes effect each time a conversation starts.
+- [ ] **Requires** enabling the "speed" override in the agent's ElevenLabs
+      **Security → Overrides** settings, otherwise it is ignored. (User
+      action on the dashboard; documented in README/RUNNING.)
+- [ ] (Nice-to-have) Persist the chosen speed in `localStorage`; optionally
+      offer a one-tap restart to apply a new speed mid-conversation.
+
+> Note: end-to-end effect (GAEY actually talking slower/faster) needs a
+> real agent with the override enabled to confirm; lint, type-check,
+> production build, and SSR render of the control all pass.
 
 ### M5 — UI/UX polish
 

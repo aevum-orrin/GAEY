@@ -1,76 +1,78 @@
 # GAEY
 
-> English version: see [`README_EN.md`](./README_EN.md)
+**GAEY** is a voice conversation AI that helps Chinese international
+students — and anyone learning American English — understand and start
+using **authentic, everyday American English**: current slang, idioms, and
+casual expressions. The method is simple: just talk to it like you would
+talk to a friend.
 
-**GAEY** 是一个语音对话 AI，帮中国留学生（以及任何想学美式英语的人）听懂、
-学会**地道的日常美式口语**——流行语、俚语、习惯表达——方法很简单：就像和
-朋友聊天一样跟它说话。
+Lots of students have strong "textbook" English but still get lost when
+Americans talk casually — the slang, the references, the filler. GAEY is a
+low-pressure, friend-like partner to practice with: warm in tone, speaks
+real spoken English, **without lots of profanity, without caricaturing any
+one accent, and without being aggressive** — just the way friends actually
+talk.
 
-很多同学英语很好，但面对美国人之间随口说的俚语、流行梗、口头语还是会一脸懵。
-GAEY 想做的就是一个零压力、像朋友一样的练习对象：语气友好、说真实的口语、
-**不带很多脏话、不针对某一种口音做夸张模仿、也不会骂人**，就是平时朋友之间
-那样自然地聊天。
+> GAEY is built on **NEGA** (this repository was forked from the NEGA
+> project). NEGA is a solid ElevenLabs Conversational AI starter; GAEY
+> keeps its clean technical foundation and swaps the persona for a
+> friendly "teach-me-real-American-English" experience.
 
-> GAEY is built on **NEGA**（本仓库 fork 自 NEGA 项目）。NEGA 是一个很扎实的
-> ElevenLabs 对话 AI 模板，GAEY 沿用了它干净的技术底座，把人设换成了"友好、
-> 教你真实美式口语"的版本。
+**Docs:** [How to run GAEY](./RUNNING.md) · [中英混杂运行指南](./RUNNING.zh-CN.md) ·
+[Roadmap (`PLAN.md`)](./PLAN.md) · [Recommended GAEY agent prompt](./doc/agent-prompt.md)
 
-完整规划见 [`PLAN.md`](./PLAN.md)；给 AI 助手看的项目说明见
-[`CLAUDE.md`](./CLAUDE.md)。
+## Features
 
-## 它是怎么工作的
+- 🎙️ **Real-time voice conversation** with a friendly American "buddy".
+- 💬 **On-screen transcript** — every line you and GAEY say, shown live so
+  you can read along and catch the slang.
+- 🐢🐇 **Speech-speed control** — a slider (0.7×–1.2×) to slow GAEY down or
+  speed it up to a pace you can follow.
 
-这个网页本身**不含任何 AI 模型**，它是 **ElevenLabs Conversational AI** 的一个
-轻量客户端：
+## How it works
 
-1. 浏览器向本地的 `/api/signed-url` 请求一个临时签名地址（用 `AGENT_ID` 和
-   `XI_API_KEY` 生成）。
-2. 客户端用这个地址建立实时语音连接（麦克风 + 音频）。
-3. **大模型（如 Gemini 2.5 Flash）、语音识别、语音合成全部在 ElevenLabs 云端
-   运行。**
+This web app contains **no AI model**. It is a thin client for
+**ElevenLabs Conversational AI**:
 
-所以 AI 的**人设、声音、模型、语速**都是在 **ElevenLabs 后台**配置的，不在代码里。
-（要把"脏话太多/口音太重"改掉，是去后台改提示词和换声音，不是改代码。）
+1. The browser asks the local `/api/signed-url` route for a short-lived
+   signed URL (built from `AGENT_ID` + `XI_API_KEY`).
+2. The client opens a realtime voice session (microphone + audio) to it.
+3. **The LLM (e.g. Gemini 2.5 Flash), speech-to-text, and text-to-speech
+   all run on ElevenLabs' servers.**
 
-## 软硬件要求 & 花不花钱
+So the AI's **persona, voice, model, and default speech speed** are all
+configured on the **ElevenLabs dashboard**, not in this code. (Fixing "too
+much profanity / too heavy an accent" means editing the prompt and changing
+the voice on the dashboard — not editing code.)
 
-- **跑这个网页是免费的**，开源，代码里没有任何收费点。
-- 唯一的成本来自 **ElevenLabs**：有**免费额度**（截图里的免费工作区有 1 万
-  credits），但语音对话**按分钟消耗 credits**，用得多就需要付费套餐。
-- **不需要 GPU，永远不需要。** 你不会在本地跑模型——模型、语音识别、语音合成
-  都在 ElevenLabs 服务器上。
-- 只需要：一台普通电脑、Node.js 18+、一个包管理器、带**麦克风**的现代浏览器、
-  以及网络。
-- "换模型/换人设要不要 GPU？" —— 不要。换模型只是在后台**下拉框里选**另一个大
-  模型；换人设只是**改一段提示词**；换声音/语速只是**后台设置**。都不动本地算力。
+## Cost & hardware
 
-## 本地运行
+- **Running this app is free** and open source — no paywall in the code.
+- The only cost is **ElevenLabs**: there is a **free tier** (the setup
+  screenshots show a free workspace with 10,000 credits), but voice
+  conversations **consume credits per minute**, so heavy use needs a paid
+  plan.
+- **No GPU required, ever.** You never run a model locally — the model,
+  speech-to-text, and text-to-speech all run on ElevenLabs' servers.
+- You only need: a normal computer, Node.js 18+, a package manager, a
+  modern browser with a **microphone**, and an internet connection.
+- "Do I need a GPU to change the model / persona?" No. Changing the model
+  is a **dropdown** on the dashboard; changing the persona is **editing
+  prompt text**; changing voice/speed is a **dashboard setting**. None of
+  it uses local compute.
 
-复制 `.env.example` 为 `.env`，填入你自己的 ElevenLabs 配置：
-
-```
-AGENT_ID=        # 你的 ElevenLabs Agent ID
-XI_API_KEY=      # 你的 ElevenLabs API Key（仅服务端使用）
-```
-
-然后：
+## Quick start
 
 ```bash
 pnpm install
-pnpm dev
-# 打开 http://localhost:3000
+cp .env.example .env   # then fill in AGENT_ID and XI_API_KEY
+pnpm dev               # open http://localhost:3000
 ```
 
-（也可以用 npm / yarn / bun 对应的命令。）
+You need your own ElevenLabs agent (Agent ID + API key) in `.env` first.
+See **[RUNNING.md](./RUNNING.md)** for the full step-by-step setup.
 
-## 配置你自己的 GAEY Agent
-
-详见 `doc/` 目录下的图文教程。核心是在 ElevenLabs 后台：新建一个 Agent，填入
-GAEY 的**系统提示词**和**开场白**（推荐文案见 [`PLAN.md`](./PLAN.md) 第 7 节），
-选一个友好的声音，把语速设成适合学习的速度，然后把 Agent ID 和 API Key 填进
-`.env`。
-
-## 了解更多
+## Learn more
 
 - [Conversational AI Tutorial](https://elevenlabs.io/docs/product/introduction)
 - [Conversational AI SDK](https://elevenlabs.io/docs/libraries/conversational-ai-sdk-js)
