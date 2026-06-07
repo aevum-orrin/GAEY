@@ -29,6 +29,11 @@ async function getSignedUrl(): Promise<string> {
   return data.signedUrl;
 }
 
+// Speech-rate range supported by ElevenLabs TTS: 0.7 (slower) … 1.2 (faster).
+const MIN_SPEED = 0.7;
+const MAX_SPEED = 1.2;
+const DEFAULT_SPEED = 1.0;
+
 // A single line in the conversation transcript. The ElevenLabs `onMessage`
 // callback reports a role of "user" (the learner's speech) or "agent" (GAEY).
 type TranscriptMessage = {
@@ -44,7 +49,7 @@ function TranscriptBubble({ message }: { message: TranscriptMessage }) {
     <div className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}>
       <div className={cn("flex max-w-[85%] flex-col gap-1", isUser ? "items-end" : "items-start")}>
         <span className="px-1 text-[11px] font-medium text-muted-foreground">
-          {isUser ? "You · 你" : "GAEY"}
+          {isUser ? "You" : "GAEY"}
         </span>
         <div
           className={cn(
@@ -66,6 +71,9 @@ export function ConvAI() {
   const [messages, setMessages] = useState<TranscriptMessage[]>([]);
   const messageIdRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // How fast GAEY speaks; applied per session via the TTS override on start.
+  const [speed, setSpeed] = useState(DEFAULT_SPEED);
 
   const { status, isSpeaking, startSession, endSession } = useConversation({
     onError: (error) => {
@@ -105,6 +113,11 @@ export function ConvAI() {
       const signedUrl = await getSignedUrl();
       await startSession({
         signedUrl: signedUrl,
+        // Apply the learner-selected speech rate for this session. The agent
+        // must allow the "speed" override in its ElevenLabs Security settings.
+        overrides: {
+          tts: { speed },
+        },
       });
     } catch (error) {
       console.error(error);
@@ -178,8 +191,8 @@ export function ConvAI() {
           {messages.length === 0 ? (
             <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
               {isConnected
-                ? "Say something — GAEY is listening 🎧  /  说点什么吧，GAEY 在听"
-                : "Start a conversation to see the transcript here.  /  开始对话后，这里会实时显示你和 GAEY 说的每句话。"}
+                ? "Say something — GAEY is listening 🎧"
+                : "Start a conversation to see the transcript here. Every line you and GAEY say shows up in real time."}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -192,7 +205,32 @@ export function ConvAI() {
       </section>
 
       {/* Call controls */}
-      <footer className="z-10 my-6 flex shrink-0 gap-4">
+      <footer className="z-10 my-6 flex shrink-0 flex-col items-center gap-4">
+        {/* Speech-rate control: how fast GAEY talks */}
+        <div className="flex w-64 flex-col gap-1.5 rounded-2xl border border-border/60 bg-background/40 px-4 py-3 backdrop-blur-sm">
+          <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <span>Speech speed</span>
+            <span className="tabular-nums text-foreground">{speed.toFixed(2)}×</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span aria-hidden className="text-sm">🐢</span>
+            <input
+              type="range"
+              min={MIN_SPEED}
+              max={MAX_SPEED}
+              step={0.05}
+              value={speed}
+              onChange={(e) => setSpeed(Number(e.target.value))}
+              aria-label="GAEY speech speed"
+              className="h-1.5 w-full cursor-pointer accent-cyan-500"
+            />
+            <span aria-hidden className="text-sm">🐇</span>
+          </div>
+          <p className="text-center text-[11px] text-muted-foreground">
+            Applied when you start a conversation
+          </p>
+        </div>
+
         {!isConnected ? (
           <Button
             variant={"outline"}
