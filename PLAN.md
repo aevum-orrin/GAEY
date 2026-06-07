@@ -81,6 +81,14 @@ their servers. "Changing the persona" means **editing prompt text** on the
 dashboard. "Changing the voice / speed" means **dashboard settings**. None
 of these touch your local compute.
 
+### Deeper dive: free-tier budget & a fully self-hosted alternative
+
+See **`doc/cost-and-self-hosting.md`** for (1) a breakdown of how far the
+ElevenLabs free tier goes and what daily practice actually costs, and
+(2) a design + effort estimate for a 100% free, self-hosted pipeline
+(Whisper + Ollama + open-source TTS), including what would change in this
+codebase.
+
 ## 5. Workstreams & milestones
 
 ### M1 — Rebrand NEGA → GAEY  ✅ (in progress)
