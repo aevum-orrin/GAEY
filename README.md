@@ -18,7 +18,7 @@ talk.
 > keeps its clean technical foundation and swaps the persona for a
 > friendly "teach-me-real-American-English" experience.
 
-**Docs:** [How to run GAEY](./RUNNING.md) · [中英混杂运行指南](./RUNNING.zh-CN.md) ·
+**Docs:** [How to run GAEY](./RUNNING.md) ·
 [Roadmap (`PLAN.md`)](./PLAN.md) · [Recommended GAEY agent prompt](./doc/agent-prompt.md)
 
 ## Features
